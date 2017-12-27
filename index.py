@@ -55,9 +55,10 @@ except Exception as ex:
 def database_setup(schema):
     """Database setup."""
     logging.info('database: setup')
-    for dbkey, dbval in schema['databases'].iteritems():
+    print(schema['databases'].values())
+    for dbkey, dbval in schema['databases'].items():
         # TODO: validate database exists
-        for tblkey, tblval in dbval['tables'].iteritems():
+        for tblkey, tblval in dbval['tables'].items():
             # TODO: validate table properties
             print(tblkey)
     return
