@@ -1,7 +1,8 @@
+---
 AWSTemplateFormatVersion: 2010-09-09
 Transform:
-- AWS::Serverless-2016-10-31
-- AWS::CodeStar
+  - AWS::Serverless-2016-10-31
+  - AWS::CodeStar
 
 Parameters:
   ProjectId:
@@ -9,22 +10,28 @@ Parameters:
     Description: CodeStar projectId used to associate new resources to team members
 
 Resources:
-  HelloWorld:
+  TrafficStats:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
       Runtime: python2.7
-      Role:
-        Fn::ImportValue:
-          !Join ['-', [!Ref 'ProjectId', !Ref 'AWS::Region', 'LambdaTrustRole']]
+      Timeout: 5
+      CodeUri: ./
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-2d222258
+        SubnetIds:
+          - subnet-1a09626c
+          - subnet-c8266490
+          - subnet-3980ae04
+          - subnet-9c5315b6
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonSSMReadOnlyAccess
       Events:
-        GetEvent:
-          Type: Api
+        Cron:
+          Type: Schedule
           Properties:
-            Path: /
-            Method: get
-        PostEvent:
-          Type: Api
-          Properties:
-            Path: /
-            Method: post
+            Schedule: 'cron(0/30 * * * ? *)'
+            Input: '{"trigger": "cloudwatch"}'
