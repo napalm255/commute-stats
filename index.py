@@ -39,17 +39,17 @@ except Exception as ex:
     sys.exit()
 
 
-# try:
-#     CONNECTION = pymysql.connect(host=DATABASE['host'],
-#                                  user=DATABASE['user'],
-#                                  password=DATABASE['pass'],
-#                                  autocommit=True,
-#                                  cursorclass=DictCursor)
-#     logging.info('database: successfully connected to mysql')
-# # pylint: disable=broad-except
-# except Exception as ex:
-#     logging.error('database: could not connect to mysql (%s)', ex)
-#     sys.exit()
+try:
+    CONNECTION = pymysql.connect(host=DATABASE['host'],
+                                 user=DATABASE['user'],
+                                 password=DATABASE['pass'],
+                                 autocommit=True,
+                                 cursorclass=DictCursor)
+    logging.info('database: successfully connected to mysql')
+# pylint: disable=broad-except
+except Exception as ex:
+    logging.error('database: could not connect to mysql (%s)', ex)
+    sys.exit()
 
 
 def database_setup(schema):
