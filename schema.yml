@@ -1,0 +1,124 @@
+---
+schedule:
+  # 24-hour format: 0000-2359
+  am:
+    start: 0400
+    end: 1100
+  pm:
+    start: 1300
+    end: 2100
+databases:
+  commute:
+    tables:
+      traffic_stats:
+        year:
+          type: int
+          primary_key: true
+          description: 2017, 2018, ...
+        month:
+          type: varchar(10)
+          description: january, february, ..., december
+        month_of_year:
+          type: int
+          description: 1 = january, ..., 12 = december
+        day:
+          type: varchar(10)
+          description: sunday, monday, ..., saturday
+        day_of_week:
+          type: int
+          description: 1 = sunday, ..., 7 = saturday
+        min:
+          type: float
+          description: Minimum value of data.
+        max:
+          type: float
+          description: Maximum value of data.
+        mean:
+          type: float
+          description: Arithmetic mean (“average”) of data.
+        harmonic-mean:
+          type: float
+          description: Harmonic mean of data.
+        median:
+          type: float
+          description: Median (middle value) of data.
+        median_low:
+          type: float
+          description: Low median of data.
+        median_high:
+          type: float
+          description: High median of data.
+        median_grouped:
+          type: float
+          description: Median, or 50th percentile, of grouped data.
+        mode:
+          type: float
+          description: Mode (most common value) of discrete data.
+        pstdev:
+          type: float
+          description: Population standard deviation of data.
+        pvariance:
+          type: float
+          description: Population variance of data.
+        stdev:
+          type: float
+          description: Sample standard deviation of data.
+        variance:
+          type: float
+          description: Sample variance of data.
+      traffic_stats_by_schedule:
+        year:
+          type: int
+          primary_key: true
+          description: 2017, 2018, ...
+        month:
+          type: varchar(10)
+          description: january, february, ..., december
+        month_of_year:
+          type: int
+          description: 1 = january, ..., 12 = december
+        day:
+          type: varchar(10)
+          description: sunday, monday, ..., saturday
+        day_of_week:
+          type: int
+          description: 1 = sunday, ..., 7 = saturday
+        min:
+          type: float
+          description: Minimum value of data.
+        max:
+          type: float
+          description: Maximum value of data.
+        mean:
+          type: float
+          description: Arithmetic mean (“average”) of data.
+        harmonic-mean:
+          type: float
+          description: Harmonic mean of data.
+        median:
+          type: float
+          description: Median (middle value) of data.
+        median_low:
+          type: float
+          description: Low median of data.
+        median_high:
+          type: float
+          description: High median of data.
+        median_grouped:
+          type: float
+          description: Median, or 50th percentile, of grouped data.
+        mode:
+          type: float
+          description: Mode (most common value) of discrete data.
+        pstdev:
+          type: float
+          description: Population standard deviation of data.
+        pvariance:
+          type: float
+          description: Population variance of data.
+        stdev:
+          type: float
+          description: Sample standard deviation of data.
+        variance:
+          type: float
+          description: Sample variance of data.
