@@ -11,114 +11,114 @@ databases:
   commute:
     tables:
       traffic_stats:
-        year:
-          type: int
-          primary_key: true
+        s_year:
+          type: int(11)
           description: 2017, 2018, ...
-        month:
+          options: PRIMARY KEY
+        s_month:
           type: varchar(10)
           description: january, february, ..., december
-        month_of_year:
-          type: int
+        s_month_of_year:
+          type: int(11)
           description: 1 = january, ..., 12 = december
-        day:
+        s_day:
           type: varchar(10)
           description: sunday, monday, ..., saturday
-        day_of_week:
-          type: int
+        s_day_of_week:
+          type: int(11)
           description: 1 = sunday, ..., 7 = saturday
-        min:
+        s_min:
           type: float
           description: Minimum value of data.
-        max:
+        s_max:
           type: float
           description: Maximum value of data.
-        mean:
+        s_mean:
           type: float
           description: Arithmetic mean (“average”) of data.
-        harmonic-mean:
+        s_harmonic_mean:
           type: float
           description: Harmonic mean of data.
-        median:
+        s_median:
           type: float
           description: Median (middle value) of data.
-        median_low:
+        s_median_low:
           type: float
           description: Low median of data.
-        median_high:
+        s_median_high:
           type: float
           description: High median of data.
-        median_grouped:
+        s_median_grouped:
           type: float
           description: Median, or 50th percentile, of grouped data.
-        mode:
+        s_mode:
           type: float
           description: Mode (most common value) of discrete data.
-        pstdev:
+        s_pstdev:
           type: float
           description: Population standard deviation of data.
-        pvariance:
+        s_pvariance:
           type: float
           description: Population variance of data.
-        stdev:
+        s_stdev:
           type: float
           description: Sample standard deviation of data.
-        variance:
+        s_variance:
           type: float
           description: Sample variance of data.
       traffic_stats_by_schedule:
-        year:
-          type: int
-          primary_key: true
+        s_year:
+          type: int(11)
           description: 2017, 2018, ...
-        month:
+          options: PRIMARY KEY
+        s_month:
           type: varchar(10)
           description: january, february, ..., december
-        month_of_year:
-          type: int
+        s_month_of_year:
+          type: int(11)
           description: 1 = january, ..., 12 = december
-        day:
+        s_day:
           type: varchar(10)
           description: sunday, monday, ..., saturday
-        day_of_week:
-          type: int
+        s_day_of_week:
+          type: int(11)
           description: 1 = sunday, ..., 7 = saturday
-        min:
+        s_min:
           type: float
           description: Minimum value of data.
-        max:
+        s_max:
           type: float
           description: Maximum value of data.
-        mean:
+        s_mean:
           type: float
           description: Arithmetic mean (“average”) of data.
-        harmonic-mean:
+        s_harmonic_mean:
           type: float
           description: Harmonic mean of data.
-        median:
+        s_median:
           type: float
           description: Median (middle value) of data.
-        median_low:
+        s_median_low:
           type: float
           description: Low median of data.
-        median_high:
+        s_median_high:
           type: float
           description: High median of data.
-        median_grouped:
+        s_median_grouped:
           type: float
           description: Median, or 50th percentile, of grouped data.
-        mode:
+        s_mode:
           type: float
           description: Mode (most common value) of discrete data.
-        pstdev:
+        s_pstdev:
           type: float
           description: Population standard deviation of data.
-        pvariance:
+        s_pvariance:
           type: float
           description: Population variance of data.
-        stdev:
+        s_stdev:
           type: float
           description: Sample standard deviation of data.
-        variance:
+        s_variance:
           type: float
           description: Sample variance of data.
