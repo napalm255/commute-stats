@@ -2,6 +2,13 @@
 version: 0.2
 
 phases:
+  pre_build:
+    commands:
+      - pip install -r requirements_dev.txt
+      - pylint index.py
+      - flake8 index.py
+      - pydocstyle -v index.py
+      - yamllint .
   build:
     commands:
       - pip install -r requirements.txt -t .
