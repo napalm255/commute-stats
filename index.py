@@ -17,7 +17,7 @@ import boto3
 
 
 # logging configuration
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 
 # global
 DATABASE_SCHEMA = 'schema.yml'
@@ -121,7 +121,7 @@ def database_setup(dbc, schema):
 
 def query(dbc, data, btype=None, start=None, end=None):
     """Query traffic."""
-    logging.info('query traffic: %s', data)
+    logging.debug('query traffic: %s', data)
     table = DATABASE['table']
     fields = ['duration_in_traffic']
     timestamp = 'CONVERT_TZ(timestamp, "UTC", "EST")'
@@ -141,11 +141,11 @@ def query(dbc, data, btype=None, start=None, end=None):
 
 def save(dbc, stats):
     """Save stats."""
+    logging.info('save: start')
     logging.debug('save: %s', stats)
     table = DATABASE['stats/table']
     logging.debug('save: table (%s)', table)
     for stat in stats:
-        logging.warning(stat)
         keys = OrderedDict(stat).keys()
         fields = ['s_%s' % x for x in keys]
         values = [stat[x] for x in keys]
@@ -162,6 +162,7 @@ def save(dbc, stats):
                'ON DUPLICATE KEY UPDATE %s') % (table, fields, vals, update)
         logging.debug('save: %s', sql)
         dbc.execute(sql)
+    logging.info('save: complete')
 
 
 def handler(event, context):
@@ -187,14 +188,12 @@ def handler(event, context):
     def stat(name, vals):
         """Process statistic."""
         try:
-            if 'min' in name:
-                res = min(vals)
-            elif 'max' in name:
-                res = min(vals)
+            if name in ('min', 'max'):
+                res = eval(name)(vals)
             else:
                 res = getattr(statistics, name)(vals)
         except statistics.StatisticsError as ex:
-            logging.warning('statistics: %s', ex)
+            logging.warning('statistics: %s', (ex))
             return 0
         return res
 
@@ -218,7 +217,6 @@ def handler(event, context):
                                                            data['origin'], data['destination'])
                 res = query(cursor, combo, btype='hour', start=start, end=end)
                 if not res:
-                    logging.error('no records')
                     continue
                 vals = [z for x in res for z in x.values()]
                 if not vals:
