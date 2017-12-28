@@ -118,14 +118,17 @@ def database_setup(dbc, schema):
     logging.info('database: setup complete')
 
 
-def query(dbc, date):
+def query(dbc, date, btype=None, start=None, end=None):
     """Query traffic."""
     logging.info('query traffic: %s', date)
     table = DATABASE['table']
     fields = ['duration_in_traffic']
-    wheres = ['DAYNAME(timestamp) = "%s"' % date['day'],
-              'MONTHNAME(timestamp) = "%s"' % date['month'],
-              'YEAR(timestamp) = %s' % date['year']]
+    timestamp = 'CONVERT_TZ(timestamp, "UTC", "EST")'
+    wheres = ['DAYNAME(%s) = "%s"' % (timestamp, date['day']),
+              'MONTHNAME(%s) = "%s"' % (timestamp, date['month']),
+              'YEAR(%s) = %s' % (timestamp, date['year'])]
+    if btype and start and end:
+        wheres.append('{0}({1}) BETWEEN {2} AND {3}'.format(btype.upper(), timestamp, start, end))
     where = ' AND '.join(wheres)
     sql = 'SELECT %s FROM %s WHERE %s' % (','.join(fields), table, where)
     logging.debug('query: %s' % sql)
@@ -133,9 +136,9 @@ def query(dbc, date):
     return dbc.fetchall()
 
 
-def save(dbc, stats):
+def save(dbc, table, stats):
     """Save stats."""
-    logging.info('save stats: %s', stats)
+    logging.debug('save stats: %s', stats)
     return stats
 
 
@@ -171,20 +174,33 @@ def handler(event, context):
     with CONNECTION.cursor() as cursor:
         # database setup
         database_setup(cursor, schema)
+        # statistic types
+        stypes = ['min', 'max', 'mean', 'median', 'median_low', 'median_high',
+                  'median_grouped', 'mode', 'pstdev', 'pvariance', 'stdev', 'variance']
         # process
         logging.info('processing: start')
+        store = list()
         for combo in combos():
-            res = query(cursor, combo)
-            vals = [z for x in res for y,z in x.items()]
-            if not vals:
-                vals = [0, 0]
-            stypes = ['min', 'max', 'mean', 'median', 'median_low', 'median_high',
-                      'median_grouped', 'mode', 'pstdev', 'pvariance', 'stdev', 'variance']
-            data = dict()
-            for stype in stypes:
-                data[stype] = stat(stype, vals)
-            print(data)
+            for key, val in schema['schedule'].items():
+                data = dict(combo)
+                start = val.get('start', None)
+                end = val.get('end', None)
+                data['schedule'] = '%s/%s/%s' % (key, start, end)
+                data['id'] = 'MD5(%s/%s/%s/%s)' % (data['year'], data['month'], data['day'], data['schedule'])
+                res = query(cursor, combo, btype='hour', start=start, end=end)
+                if not res:
+                    logging.error('no records')
+                    continue
+                vals = [z for x in res for y,z in x.items()]
+                if not vals:
+                    vals = [0, 0]
+                for stype in stypes:
+                    data[stype] = stat(stype, vals)
+                store.append(data)
+        # save(cursor, 'traffic_stats_by_schedule', store)
         logging.info('processing: end')
+        for item in store:
+            print(item)
     return None
 
 

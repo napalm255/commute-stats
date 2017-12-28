@@ -1,73 +1,26 @@
 ---
 schedule:
-  # 24-hour format: 0000-2359
+  # 24-hour format: 0-23
+  all:
+    start: null
+    end: null
   am:
-    start: 0400
-    end: 1100
+    start: 4
+    end: 11
   pm:
-    start: 1300
-    end: 2100
+    start: 13
+    end: 21
 databases:
   commute:
     tables:
       traffic_stats:
         s_id:
           type: int(11)
-          description: unique id 
+          description: unique id
           options: PRIMARY KEY
-        s_year:
+        s_schedule:
           type: int(11)
-          description: 2017, 2018, ...
-        s_month:
-          type: varchar(10)
-          description: january, february, ..., december
-        s_day:
-          type: varchar(10)
-          description: sunday, monday, ..., saturday
-        s_min:
-          type: float
-          description: Minimum value of data.
-        s_max:
-          type: float
-          description: Maximum value of data.
-        s_mean:
-          type: float
-          description: Arithmetic mean (“average”) of data.
-        s_harmonic_mean:
-          type: float
-          description: Harmonic mean of data.
-        s_median:
-          type: float
-          description: Median (middle value) of data.
-        s_median_low:
-          type: float
-          description: Low median of data.
-        s_median_high:
-          type: float
-          description: High median of data.
-        s_median_grouped:
-          type: float
-          description: Median, or 50th percentile, of grouped data.
-        s_mode:
-          type: float
-          description: Mode (most common value) of discrete data.
-        s_pstdev:
-          type: float
-          description: Population standard deviation of data.
-        s_pvariance:
-          type: float
-          description: Population variance of data.
-        s_stdev:
-          type: float
-          description: Sample standard deviation of data.
-        s_variance:
-          type: float
-          description: Sample variance of data.
-      traffic_stats_by_schedule:
-        s_id:
-          type: int(11)
-          description: unique id 
-          options: PRIMARY KEY
+          description: schedule (####-####)
         s_year:
           type: int(11)
           description: 2017, 2018, ...
