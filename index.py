@@ -79,7 +79,7 @@ def database_setup(dbc, schema):
             logging.info('database: exists')
 
         # use database
-        dbc.execute('USE %s' % dbkey)
+        dbc.select_db(dbkey)
 
         # get tables
         logging.info('database: get tables')
@@ -97,6 +97,7 @@ def database_setup(dbc, schema):
                 dbc.execute(sql)
             else:
                 logging.info('table: exists (%s)', tblkey)
+
             # validate columns
             dbc.execute('DESCRIBE %s' % tblkey)
             table = dbc.fetchall()
@@ -111,7 +112,20 @@ def database_setup(dbc, schema):
             else:
                 logging.error('table: columns do not match schema')
                 sys.exit()
-    return True
+    logging.info('database: setup complete')
+
+
+def query_traffic(dbc, sql):
+    """Query traffic."""
+    logging.info('query traffic: %s', sql)
+    dbc.execute(sql)
+    return dbc.fetchall()
+
+
+def save_stats(dbc, stats):
+    """Save stats."""
+    logging.info('save stats: %s', stats)
+    return stats
 
 
 def handler(event, context):
@@ -122,8 +136,8 @@ def handler(event, context):
     with open(DATABASE_SCHEMA) as schema_file:
         schema = yaml.load(schema_file)
 
-    # database setup
     with CONNECTION.cursor() as cursor:
+        # database setup
         database_setup(cursor, schema)
 
     return None
