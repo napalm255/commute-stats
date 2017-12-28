@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Commute Traffic Stats Processor."""
 # pylint: disable=broad-except
 
