@@ -189,6 +189,7 @@ def handler(event, context):
         """Process statistic."""
         try:
             if name in ('min', 'max'):
+                # pylint: disable=eval-used
                 res = eval(name)(vals)
             else:
                 res = getattr(statistics, name)(vals)
