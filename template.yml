@@ -33,5 +33,5 @@ Resources:
         Cron:
           Type: Schedule
           Properties:
-            Schedule: 'cron(0/30 * * * ? *)'
+            Schedule: 'cron(0 * * * ? *)'
             Input: '{"trigger": "cloudwatch"}'
