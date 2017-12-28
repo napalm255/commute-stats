@@ -8,11 +8,11 @@ import json
 import logging
 from datetime import datetime
 import calendar
+import statistics
 import pymysql
 from pymysql.cursors import DictCursor
 import yaml
 import boto3
-import statistics
 
 
 # logging configuration
@@ -131,26 +131,32 @@ def query(dbc, date, btype=None, start=None, end=None):
         wheres.append('{0}({1}) BETWEEN {2} AND {3}'.format(btype.upper(), timestamp, start, end))
     where = ' AND '.join(wheres)
     sql = 'SELECT %s FROM %s WHERE %s' % (','.join(fields), table, where)
-    logging.debug('query: %s' % sql)
+    logging.debug('query: %s', sql)
     dbc.execute(sql)
     return dbc.fetchall()
 
 
-def save(dbc, table, stats):
+def save(dbc, stats):
     """Save stats."""
-    logging.debug('save stats: %s', stats)
-    return stats
+    logging.debug('save: %s', stats)
+    table = DATABASE['stats/table']
+    fields = sorted(['s_%s' % x for x in stats.keys()])
+    vals = [stats[x.replace('s_', '')] for x in fields]
+    sql = 'INSERT INTO %s (%s) VALUES (%s)' % (table, fields, vals)
+    logging.debug('save: %s', sql)
+    dbc.execute(sql)
 
 
 def handler(event, context):
     """Lambda handler."""
-    # pylint: disable=unused-argument
+    # pylint: disable=unused-argument, too-many-locals
     logging.info('event %s', event)
 
     with open(DATABASE_SCHEMA) as schema_file:
         schema = yaml.load(schema_file)
 
     def combos():
+        """Return combinations of Year / Month / Day."""
         combo = list()
         for year in range(YEAR, int(datetime.utcnow().strftime('%Y')) + 1):
             for month in calendar.month_name[1:]:
@@ -158,16 +164,17 @@ def handler(event, context):
                     combo.append({'year': year, 'month': month, 'day': day})
         return combo
 
-    def stat(key, vals):
+    def stat(name, vals):
+        """Process statistic."""
         try:
-            if 'min' in key:
-               res = min(vals)
-            elif 'max' in key:
-               res = min(vals)
+            if 'min' in name:
+                res = min(vals)
+            elif 'max' in name:
+                res = min(vals)
             else:
-                res = getattr(statistics, key)(vals)
+                res = getattr(statistics, name)(vals)
         except statistics.StatisticsError as ex:
-            logging.warning('statistics: %s' % ex)
+            logging.warning('statistics: %s', ex)
             return 0
         return res
 
@@ -181,17 +188,18 @@ def handler(event, context):
         logging.info('processing: start')
         store = list()
         for combo in combos():
-            for key, val in schema['schedule'].items():
+            for name, val in schema['schedule'].items():
                 data = dict(combo)
                 start = val.get('start', None)
                 end = val.get('end', None)
-                data['schedule'] = '%s/%s/%s' % (key, start, end)
-                data['id'] = 'MD5(%s/%s/%s/%s)' % (data['year'], data['month'], data['day'], data['schedule'])
+                data['schedule'] = '%s/%s/%s' % (name, start, end)
+                data['id'] = 'MD5(%s/%s/%s/%s)' % (data['year'], data['month'],
+                                                   data['day'], data['schedule'])
                 res = query(cursor, combo, btype='hour', start=start, end=end)
                 if not res:
                     logging.error('no records')
                     continue
-                vals = [z for x in res for y,z in x.items()]
+                vals = [z for x in res for z in x.values()]
                 if not vals:
                     vals = [0, 0]
                 for stype in stypes:
