@@ -152,8 +152,11 @@ def save(dbc, stats):
                 vals.append('"%s"' % val)
             else:
                 vals.append(str(val))
-        update = ['%s=%s' % (x[0], x[1]) for x in list(zip(fields, vals))]
-        sql = 'INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s' % (table, ','.join(fields), ','.join(vals), ','.join(update))
+        update = ','.join(['%s=%s' % (x[0], x[1]) for x in list(zip(fields, vals))])
+        fields = ','.join(fields)
+        vals = ','.join(vals)
+        sql = ('INSERT INTO %s (%s) VALUES (%s)'
+               'ON DUPLICATE KEY UPDATE %s') % (table, fields, vals, update)
         logging.debug('save: %s', sql)
         dbc.execute(sql)
 
@@ -205,7 +208,7 @@ def handler(event, context):
                 end = val.get('end', None)
                 data['schedule'] = '%s/%s/%s' % (name, start, end)
                 data['id'] = 'MD5("%s/%s/%s/%s")' % (data['year'], data['month'],
-                                                   data['day'], data['schedule'])
+                                                     data['day'], data['schedule'])
                 res = query(cursor, combo, btype='hour', start=start, end=end)
                 if not res:
                     logging.error('no records')
