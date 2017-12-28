@@ -15,7 +15,7 @@ databases:
     tables:
       traffic_stats:
         s_id:
-          type: int(11)
+          type: varchar(255)
           description: unique id
           options: PRIMARY KEY
         s_schedule:

@@ -140,11 +140,22 @@ def save(dbc, stats):
     """Save stats."""
     logging.debug('save: %s', stats)
     table = DATABASE['stats/table']
-    fields = sorted(['s_%s' % x for x in stats.keys()])
-    vals = [stats[x.replace('s_', '')] for x in fields]
-    sql = 'INSERT INTO %s (%s) VALUES (%s)' % (table, fields, vals)
-    logging.debug('save: %s', sql)
-    dbc.execute(sql)
+    logging.debug('save: table (%s)', table)
+    for stat in stats:
+        logging.warning(stat)
+        keys = sorted(stat.keys())
+        fields = ['s_%s' % x for x in keys]
+        values = [stat[x] for x in keys]
+        vals = list()
+        for val in values:
+            if isinstance(val, str) and 'MD5(' not in val:
+                vals.append('"%s"' % val)
+            else:
+                vals.append(str(val))
+        update = ['%s=%s' % (x[0], x[1]) for x in list(zip(fields, vals))]
+        sql = 'INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s' % (table, ','.join(fields), ','.join(vals), ','.join(update))
+        logging.debug('save: %s', sql)
+        dbc.execute(sql)
 
 
 def handler(event, context):
@@ -193,7 +204,7 @@ def handler(event, context):
                 start = val.get('start', None)
                 end = val.get('end', None)
                 data['schedule'] = '%s/%s/%s' % (name, start, end)
-                data['id'] = 'MD5(%s/%s/%s/%s)' % (data['year'], data['month'],
+                data['id'] = 'MD5("%s/%s/%s/%s")' % (data['year'], data['month'],
                                                    data['day'], data['schedule'])
                 res = query(cursor, combo, btype='hour', start=start, end=end)
                 if not res:
@@ -205,7 +216,7 @@ def handler(event, context):
                 for stype in stypes:
                     data[stype] = stat(stype, vals)
                 store.append(data)
-        # save(cursor, 'traffic_stats_by_schedule', store)
+        save(cursor, store)
         logging.info('processing: end')
         for item in store:
             print(item)
