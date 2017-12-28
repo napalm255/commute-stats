@@ -6,10 +6,13 @@ from __future__ import print_function
 import sys
 import json
 import logging
+from datetime import datetime
+import calendar
 import pymysql
 from pymysql.cursors import DictCursor
 import yaml
 import boto3
+import statistics
 
 
 # logging configuration
@@ -17,6 +20,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 # global
 DATABASE_SCHEMA = 'schema.yml'
+YEAR = 2017
 
 try:
     SSM = boto3.client('ssm')
@@ -57,7 +61,6 @@ try:
                                  autocommit=True,
                                  cursorclass=DictCursor)
     logging.info('database: successfully connected to mysql')
-# pylint: disable=broad-except
 except Exception as ex:
     logging.error('database: could not connect to mysql (%s)', ex)
     sys.exit()
@@ -115,14 +118,22 @@ def database_setup(dbc, schema):
     logging.info('database: setup complete')
 
 
-def query_traffic(dbc, sql):
+def query(dbc, date):
     """Query traffic."""
-    logging.info('query traffic: %s', sql)
+    logging.info('query traffic: %s', date)
+    table = DATABASE['table']
+    fields = ['duration_in_traffic']
+    wheres = ['DAYNAME(timestamp) = "%s"' % date['day'],
+              'MONTHNAME(timestamp) = "%s"' % date['month'],
+              'YEAR(timestamp) = %s' % date['year']]
+    where = ' AND '.join(wheres)
+    sql = 'SELECT %s FROM %s WHERE %s' % (','.join(fields), table, where)
+    logging.debug('query: %s' % sql)
     dbc.execute(sql)
     return dbc.fetchall()
 
 
-def save_stats(dbc, stats):
+def save(dbc, stats):
     """Save stats."""
     logging.info('save stats: %s', stats)
     return stats
@@ -136,10 +147,44 @@ def handler(event, context):
     with open(DATABASE_SCHEMA) as schema_file:
         schema = yaml.load(schema_file)
 
+    def combos():
+        combo = list()
+        for year in range(YEAR, int(datetime.utcnow().strftime('%Y')) + 1):
+            for month in calendar.month_name[1:]:
+                for day in calendar.day_name:
+                    combo.append({'year': year, 'month': month, 'day': day})
+        return combo
+
+    def stat(key, vals):
+        try:
+            if 'min' in key:
+               res = min(vals)
+            elif 'max' in key:
+               res = min(vals)
+            else:
+                res = getattr(statistics, key)(vals)
+        except statistics.StatisticsError as ex:
+            logging.warning('statistics: %s' % ex)
+            return 0
+        return res
+
     with CONNECTION.cursor() as cursor:
         # database setup
         database_setup(cursor, schema)
-
+        # process
+        logging.info('processing: start')
+        for combo in combos():
+            res = query(cursor, combo)
+            vals = [z for x in res for y,z in x.items()]
+            if not vals:
+                vals = [0, 0]
+            stypes = ['min', 'max', 'mean', 'median', 'median_low', 'median_high',
+                      'median_grouped', 'mode', 'pstdev', 'pvariance', 'stdev', 'variance']
+            data = dict()
+            for stype in stypes:
+                data[stype] = stat(stype, vals)
+            print(data)
+        logging.info('processing: end')
     return None
 
 

@@ -11,22 +11,19 @@ databases:
   commute:
     tables:
       traffic_stats:
+        s_id:
+          type: int(11)
+          description: unique id 
+          options: PRIMARY KEY
         s_year:
           type: int(11)
           description: 2017, 2018, ...
-          options: PRIMARY KEY
         s_month:
           type: varchar(10)
           description: january, february, ..., december
-        s_month_of_year:
-          type: int(11)
-          description: 1 = january, ..., 12 = december
         s_day:
           type: varchar(10)
           description: sunday, monday, ..., saturday
-        s_day_of_week:
-          type: int(11)
-          description: 1 = sunday, ..., 7 = saturday
         s_min:
           type: float
           description: Minimum value of data.
@@ -67,22 +64,19 @@ databases:
           type: float
           description: Sample variance of data.
       traffic_stats_by_schedule:
+        s_id:
+          type: int(11)
+          description: unique id 
+          options: PRIMARY KEY
         s_year:
           type: int(11)
           description: 2017, 2018, ...
-          options: PRIMARY KEY
         s_month:
           type: varchar(10)
           description: january, february, ..., december
-        s_month_of_year:
-          type: int(11)
-          description: 1 = january, ..., 12 = december
         s_day:
           type: varchar(10)
           description: sunday, monday, ..., saturday
-        s_day_of_week:
-          type: int(11)
-          description: 1 = sunday, ..., 7 = saturday
         s_min:
           type: float
           description: Minimum value of data.
