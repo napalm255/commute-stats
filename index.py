@@ -7,6 +7,7 @@ import sys
 import json
 import logging
 from datetime import datetime
+from collections import OrderedDict
 import calendar
 import statistics
 import pymysql
@@ -118,15 +119,17 @@ def database_setup(dbc, schema):
     logging.info('database: setup complete')
 
 
-def query(dbc, date, btype=None, start=None, end=None):
+def query(dbc, data, btype=None, start=None, end=None):
     """Query traffic."""
-    logging.info('query traffic: %s', date)
+    logging.info('query traffic: %s', data)
     table = DATABASE['table']
     fields = ['duration_in_traffic']
     timestamp = 'CONVERT_TZ(timestamp, "UTC", "EST")'
-    wheres = ['DAYNAME(%s) = "%s"' % (timestamp, date['day']),
-              'MONTHNAME(%s) = "%s"' % (timestamp, date['month']),
-              'YEAR(%s) = %s' % (timestamp, date['year'])]
+    wheres = ['DAYNAME(%s) = "%s"' % (timestamp, data['day']),
+              'MONTHNAME(%s) = "%s"' % (timestamp, data['month']),
+              'YEAR(%s) = %s' % (timestamp, data['year']),
+              'origin = "%s"' % (data['origin']),
+              'destination = "%s"' % (data['destination'])]
     if btype and start and end:
         wheres.append('{0}({1}) BETWEEN {2} AND {3}'.format(btype.upper(), timestamp, start, end))
     where = ' AND '.join(wheres)
@@ -143,7 +146,7 @@ def save(dbc, stats):
     logging.debug('save: table (%s)', table)
     for stat in stats:
         logging.warning(stat)
-        keys = sorted(stat.keys())
+        keys = OrderedDict(stat).keys()
         fields = ['s_%s' % x for x in keys]
         values = [stat[x] for x in keys]
         vals = list()
@@ -172,10 +175,13 @@ def handler(event, context):
     def combos():
         """Return combinations of Year / Month / Day."""
         combo = list()
-        for year in range(YEAR, int(datetime.utcnow().strftime('%Y')) + 1):
-            for month in calendar.month_name[1:]:
-                for day in calendar.day_name:
-                    combo.append({'year': year, 'month': month, 'day': day})
+        for route in ROUTES.values():
+            for year in range(YEAR, int(datetime.utcnow().strftime('%Y')) + 1):
+                for month in calendar.month_name[1:]:
+                    for day in calendar.day_name:
+                        combo.append({'year': year, 'month': month, 'day': day,
+                                      'origin': route['origin'],
+                                      'destination': route['destination']})
         return combo
 
     def stat(name, vals):
@@ -196,7 +202,7 @@ def handler(event, context):
         # database setup
         database_setup(cursor, schema)
         # statistic types
-        stypes = ['min', 'max', 'mean', 'median', 'median_low', 'median_high',
+        stypes = ['min', 'max', 'mean', 'harmonic_mean', 'median', 'median_low', 'median_high',
                   'median_grouped', 'mode', 'pstdev', 'pvariance', 'stdev', 'variance']
         # process
         logging.info('processing: start')
@@ -207,8 +213,9 @@ def handler(event, context):
                 start = val.get('start', None)
                 end = val.get('end', None)
                 data['schedule'] = '%s/%s/%s' % (name, start, end)
-                data['id'] = 'MD5("%s/%s/%s/%s")' % (data['year'], data['month'],
-                                                     data['day'], data['schedule'])
+                data['id'] = 'MD5("%s/%s/%s/%s/%s/%s")' % (data['year'], data['month'],
+                                                           data['day'], data['schedule'],
+                                                           data['origin'], data['destination'])
                 res = query(cursor, combo, btype='hour', start=start, end=end)
                 if not res:
                     logging.error('no records')
@@ -221,8 +228,6 @@ def handler(event, context):
                 store.append(data)
         save(cursor, store)
         logging.info('processing: end')
-        for item in store:
-            print(item)
     return None
 
 

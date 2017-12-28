@@ -19,8 +19,14 @@ databases:
           description: unique id
           options: PRIMARY KEY
         s_schedule:
-          type: int(11)
-          description: schedule (####-####)
+          type: varchar(255)
+          description: schedule (ex. am/3/11)
+        s_origin:
+          type: varchar(255)
+          description: 1600 Amphitheatre Pkwy, Mountain View, CA 94043
+        s_destination:
+          type: varchar(255)
+          description: 410 Terry Ave. North Seattle, WA 98109
         s_year:
           type: int(11)
           description: 2017, 2018, ...
