@@ -79,7 +79,7 @@ def database_setup(dbc, schema):
             logging.info('database: exists')
 
         # use database
-        dbc.select_db(dbkey)
+        dbc.execute('USE %s' % dbkey)
 
         # get tables
         logging.info('database: get tables')
