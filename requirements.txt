@@ -1,5 +1,4 @@
 requests
 boto3
-statistics
 pymysql
 pyyaml
