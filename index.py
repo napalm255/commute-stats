@@ -5,7 +5,6 @@
 from __future__ import print_function
 import sys
 import json
-import datetime
 import logging
 import pymysql
 from pymysql.cursors import DictCursor
@@ -94,14 +93,19 @@ def database_setup(dbc, schema):
                 logging.warning('table: does not exist (%s)', tblkey)
                 logging.info('table: creating (%s)', tblkey)
                 sql = 'CREATE TABLE %s (%s)' % (tblkey, ', '.join(cols))
-                logging.debug('table: %s' % sql)
+                logging.debug('table: %s', sql)
                 dbc.execute(sql)
             else:
                 logging.info('table: exists (%s)', tblkey)
             # validate columns
             dbc.execute('DESCRIBE %s' % tblkey)
             table = dbc.fetchall()
-            tbl = ['%s %s %s' % (x['Field'], x['Type'], x.get('Key', '').replace('PRI', 'PRIMARY KEY')) for x in table]
+
+            def opts(pky):
+                """Return and filter options."""
+                return pky.get('Key', '').replace('PRI', 'PRIMARY KEY')
+            tbl = ['%s %s %s' % (x['Field'], x['Type'], opts(x)) for x in table]
+
             if tbl == cols:
                 logging.info('table: columns match schema')
             else:
